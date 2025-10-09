@@ -42,9 +42,10 @@ function isNull(value) {
   return value === null || value === undefined || value === "" || (typeof value === 'object' && Object.keys(value).length === 0);
 }
 
-function responseSendAndLog(res, status, response) {
+function responseSendAndLog(req, res, status, response) {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] [${status}] Request received. Response:\n`, JSON.stringify(response, null, 2));
+  console.log(`[${timestamp}] [${status}] Request:\n` + JSON.stringify(req.body, null, 2) + "\n\nResponse:\n", JSON.stringify(response, null, 2));
+  console.log("===========================================================")
   return res.status(status).send(response);
 }
 
@@ -53,37 +54,37 @@ app.post('/barcodes/v1/ranges/:accountNumber', (req, res) => {
   const accountNumber = req.params.accountNumber;
 
   if (!isValidAccountNumber(accountNumber)) {
-    return responseSendAndLog(res, 400, `Invalid account number "${accountNumber}". Must be exactly 10 digits (0-9).`);
+    return responseSendAndLog(req, res, 400, `Invalid account number "${accountNumber}". Must be exactly 10 digits (0-9).`);
   }
 
   const body = req.body;
 
   if (isNull(body)) {
-    return responseSendAndLog(res, 400, "Request body cannot be empty. Please provide all required fields.");
+    return responseSendAndLog(req, res, 400, "Request body cannot be empty. Please provide all required fields.");
   }
 
   if (isNull(body.requestId) || !isGuid(body.requestId)) {
-    return responseSendAndLog(res, 400, `Invalid requestId "${body.requestId}". Must be a valid GUID (UUID v4 format).`);
+    return responseSendAndLog(req, res, 400, `Invalid requestId "${body.requestId}". Must be a valid GUID (UUID v4 format).`);
   }
 
   if (isNull(body.accessCode) || typeof body.accessCode !== "string" || !body.accessCode.startsWith("M")) {
-    return responseSendAndLog(res, 400, `Invalid accessCode "${body.accessCode}". Must be a string starting with 'M'.`);
+    return responseSendAndLog(req, res, 400, `Invalid accessCode "${body.accessCode}". Must be a string starting with 'M'.`);
   }
 
   if (isNull(body.product) || typeof body.product !== "string" || body.product.length !== 3) {
-    return responseSendAndLog(res, 400, `Invalid product "${body.product}". Must be a non-empty string of exactly 3 letters.`);
+    return responseSendAndLog(req, res, 400, `Invalid product "${body.product}". Must be a non-empty string of exactly 3 letters.`);
   }
 
   if (isNull(body.serviceOccurrence) || typeof body.serviceOccurrence !== "number") {
-    return responseSendAndLog(res, 400, `Invalid serviceOccurrence "${body.serviceOccurrence}". Must be a number.`);
+    return responseSendAndLog(req, res, 400, `Invalid serviceOccurrence "${body.serviceOccurrence}". Must be a number.`);
   }
 
   if (isNull(body.signatureFlag) || typeof body.signatureFlag !== "boolean") {
-    return responseSendAndLog(res, 400, `Invalid signatureFlag "${body.signatureFlag}". Must be a boolean value (true or false).`);
+    return responseSendAndLog(req, res, 400, `Invalid signatureFlag "${body.signatureFlag}". Must be a boolean value (true or false).`);
   }
 
   if (isNull(body.postingLocation) || isNaN(Number(body.postingLocation))) {
-    return responseSendAndLog(res, 400, `Invalid postingLocation "${body.postingLocation}". Must be a number (digits only).`);
+    return responseSendAndLog(req, res, 400, `Invalid postingLocation "${body.postingLocation}". Must be a number (digits only).`);
   }
 
   // All validations passed, generate response
@@ -97,7 +98,7 @@ app.post('/barcodes/v1/ranges/:accountNumber', (req, res) => {
     ]
   };
 
-  return responseSendAndLog(res, 200, resjson);
+  return responseSendAndLog(req, res, 200, resjson);
 });
 
 app.listen(port, () => {
