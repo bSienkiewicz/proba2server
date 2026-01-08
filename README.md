@@ -1,17 +1,17 @@
 ## How to run
 
-Install NodeJS
+Install NodeJS and all app dependencies:
 ```
 npm install
 node index.js
 ```
-The server will start on port 3000.
+The server will start on port 3030.
 
 ---
 
 ### Example Request
 
-POST `http://localhost:3000/barcodes/v1/ranges/1234567890`
+POST `http://localhost:3030/barcodes/v1/ranges/1234567890`
 ```
 {
   "requestId": "b73cfc80-0cb2-46bc-80ab-60aa9a79f1bf",
