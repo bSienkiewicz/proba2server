@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const app = express();
 app.use(express.json());
@@ -49,19 +51,57 @@ function responseSendAndLog(req, res, status, response) {
   return res.status(status).send(response);
 }
 
+function validateHeaders(req, res) {
+  const headers = req.headers;
+  if (
+    isNull(headers['x-ibm-client-id']) ||
+    isNull(headers['x-ibm-client-secret']) ||
+    typeof headers['x-ibm-client-id'] !== "string" ||
+    typeof headers['x-ibm-client-secret'] !== "string" ||
+    headers['x-ibm-client-id'] !== process.env.client_id ||
+    headers['x-ibm-client-secret'] !== process.env.client_secret
+  ) {
+    console.log(process.env.client_id);
+    console.log(headers['x-ibm-client-id']);
+    console.log(process.env.client_secret);
+    console.log(headers['x-ibm-client-secret']);
+    responseSendAndLog(req, res, 400, "Invalid credentials. Incorrect client id or client secret.");
+    return false;
+  }
+  if (isNull(headers['content-type']) || typeof headers['content-type'] !== "string" || headers['content-type'] !== "application/json") {
+    responseSendAndLog(req, res, 400, "Invalid content type. Must be 'application/json'.");
+    return false;
+  }
+  return true;
+}
+
+function validateBody(req, res) {
+  const body = req.body;
+  if (isNull(body)) {
+    responseSendAndLog(req, res, 400, "Request body cannot be empty. Please provide all required fields.");
+    return false;
+  }
+  return true;
+}
+
 // Route
 app.post('/barcodes/v1/ranges/:accountNumber', (req, res) => {
   const accountNumber = req.params.accountNumber;
 
+  const body = req.body;
+  
+  if (!validateHeaders(req, res)) {
+    return;
+  }
+
+  if (!validateBody(req, res)) {
+    return;
+  }
+  
   if (!isValidAccountNumber(accountNumber)) {
     return responseSendAndLog(req, res, 400, `Invalid account number "${accountNumber}". Must be exactly 10 digits (0-9).`);
   }
 
-  const body = req.body;
-
-  if (isNull(body)) {
-    return responseSendAndLog(req, res, 400, "Request body cannot be empty. Please provide all required fields.");
-  }
 
   if (isNull(body.requestId) || !isGuid(body.requestId)) {
     return responseSendAndLog(req, res, 400, `Invalid requestId "${body.requestId}". Must be a valid GUID (UUID v4 format).`);

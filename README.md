@@ -1,5 +1,11 @@
 ## How to run
 
+Create a .env file in the root directory with the following variables:
+```
+client_id=your_client_id
+client_secret=your_client_secret
+```
+
 Install NodeJS and all app dependencies:
 ```
 npm install
