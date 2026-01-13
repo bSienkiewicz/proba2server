@@ -51,23 +51,59 @@ function responseSendAndLog(req, res, status, response) {
   return res.status(status).send(response);
 }
 
+function getValidCredentialPairs() {
+  const pairs = [];
+  let index = 1;
+  
+  // Load all CLIENT_ID_X and CLIENT_SECRET_X pairs from .env
+  while (process.env[`CLIENT_ID_${index}`] && process.env[`CLIENT_SECRET_${index}`]) {
+    pairs.push({
+      id: process.env[`CLIENT_ID_${index}`],
+      secret: process.env[`CLIENT_SECRET_${index}`]
+    });
+    index++;
+  }
+  
+  return pairs;
+}
+
 function validateHeaders(req, res) {
   const headers = req.headers;
+  
+  // Check if headers exist and are strings
   if (
     isNull(headers['x-ibm-client-id']) ||
     isNull(headers['x-ibm-client-secret']) ||
     typeof headers['x-ibm-client-id'] !== "string" ||
-    typeof headers['x-ibm-client-secret'] !== "string" ||
-    headers['x-ibm-client-id'] !== process.env.client_id ||
-    headers['x-ibm-client-secret'] !== process.env.client_secret
+    typeof headers['x-ibm-client-secret'] !== "string"
   ) {
-    console.log(process.env.client_id);
-    console.log(headers['x-ibm-client-id']);
-    console.log(process.env.client_secret);
-    console.log(headers['x-ibm-client-secret']);
     responseSendAndLog(req, res, 400, "Invalid credentials. Incorrect client id or client secret.");
     return false;
   }
+  
+  // Get all valid credential pairs from .env
+  const validPairs = getValidCredentialPairs();
+  
+  if (validPairs.length === 0) {
+    console.error("ERROR: No valid credential pairs found in .env file");
+    responseSendAndLog(req, res, 500, "Server configuration error.");
+    return false;
+  }
+  
+  // Check if provided credentials match any valid pair
+  const isValidCredentials = validPairs.some(pair => 
+    headers['x-ibm-client-id'] === pair.id && 
+    headers['x-ibm-client-secret'] === pair.secret
+  );
+  
+  if (!isValidCredentials) {
+    console.log("Invalid credentials attempt:");
+    console.log("Provided client-id:", headers['x-ibm-client-id']);
+    console.log("Provided client-secret:", headers['x-ibm-client-secret']);
+    responseSendAndLog(req, res, 400, "Invalid credentials. Incorrect client id or client secret.");
+    return false;
+  }
+  
   if (isNull(headers['content-type']) || typeof headers['content-type'] !== "string" || headers['content-type'] !== "application/json") {
     responseSendAndLog(req, res, 400, "Invalid content type. Must be 'application/json'.");
     return false;

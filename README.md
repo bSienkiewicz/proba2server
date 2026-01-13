@@ -2,8 +2,14 @@
 
 Create a .env file in the root directory with the following variables:
 ```
-client_id=your_client_id
-client_secret=your_client_secret
+# PRD
+CLIENT_ID_1=your_client_id_1
+CLIENT_SECRET_1=your_client_secret_1
+
+# SBX
+CLIENT_ID_2=your_client_id_2
+CLIENT_SECRET_2=your_client_secret_2
+...
 ```
 
 Install NodeJS and all app dependencies:
