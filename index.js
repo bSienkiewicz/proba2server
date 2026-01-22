@@ -105,8 +105,8 @@ function validateHeaders(req, res) {
     return false;
   }
   
-  if (isNull(headers['content-type']) || typeof headers['content-type'] !== "string" || headers['content-type'] !== "application/json") {
-    responseSendAndLog(req, res, 400, "Invalid content type. Must be 'application/json'.");
+  if (isNull(headers['content-type']) || typeof headers['content-type'] !== "string" || headers['content-type'].includes("application/json")) {
+    responseSendAndLog(req, res, 400, "Invalid content type. Must contain 'application/json'.");
     return false;
   }
   return true;
