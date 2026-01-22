@@ -69,6 +69,7 @@ function getValidCredentialPairs() {
 
 function validateHeaders(req, res) {
   const headers = req.headers;
+  console.log('[HEADERS]: ',  headers);
   
   // Check if headers exist and are strings
   if (
